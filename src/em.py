@@ -61,3 +61,13 @@ def fit_em(data, tol=1e-6, max_iter=200):
         if abs(ll - history[-2]['log_likelihood']) < tol:
             break
     return params, history
+
+
+def classify(height, params, labels=('Shorter group', 'Taller group')):
+    """Print and return P(group | height). labels[0] is the component with the smaller mean."""
+    post = e_step(height, params)[0]
+    order = np.argsort(params['mu'])
+    print(f"Height: {height}")
+    for label, k in zip(labels, order):
+        print(f"  P({label} | height) = {post[k]:.4f}")
+    return dict(zip(labels, post[order]))
