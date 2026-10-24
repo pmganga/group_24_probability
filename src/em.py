@@ -1,4 +1,20 @@
+import csv
+
 import numpy as np
+
+
+def load_heights(path):
+    """Fathers (one per family) and children from the Galton CSV, labels removed.
+
+    Returns (heights, source) where source is only kept to check the fit afterwards.
+    """
+    with open(path, newline='') as f:
+        rows = list(csv.DictReader(f))
+    fathers = {r['family']: float(r['father']) for r in rows}  # father repeats on every child's row
+    children = [float(r['childHeight']) for r in rows]
+    heights = np.array(list(fathers.values()) + children)
+    source = np.array(['Father'] * len(fathers) + ['Child'] * len(children))
+    return heights, source
 
 
 def gaussian_pdf(x, mu, var):
@@ -49,7 +65,7 @@ def snapshot(params):
             'pi1': params['pi'][0], 'pi2': params['pi'][1]}
 
 
-def fit_em(data, tol=1e-6, max_iter=200):
+def fit_em(data, tol=1e-6, max_iter=1000):
     """Run EM until the log-likelihood stops improving. Returns (params, history)."""
     params = initialise(data)
     history = [{'iteration': 0, **snapshot(params),
@@ -63,7 +79,18 @@ def fit_em(data, tol=1e-6, max_iter=200):
     return params, history
 
 
-def classify(height, params, labels=('Shorter group', 'Taller group')):
+def tracking_table(history, rows=3, labels=('Children', 'Fathers')):
+    """Print the required table for iterations 0..rows-1. Component 1 starts at the lower mean."""
+    header = (f"{'Iteration':<10}{'μ1 (' + labels[0] + ')':>16}{'μ2 (' + labels[1] + ')':>16}"
+              f"{'σ1²':>10}{'σ2²':>10}{'π1':>9}{'π2':>9}{'Log-Likelihood':>17}")
+    print(header)
+    print('-' * len(header))
+    for h in history[:rows]:
+        print(f"{h['iteration']:<10}{h['mu1']:>16.4f}{h['mu2']:>16.4f}{h['var1']:>10.4f}"
+              f"{h['var2']:>10.4f}{h['pi1']:>9.4f}{h['pi2']:>9.4f}{h['log_likelihood']:>17.4f}")
+
+
+def classify(height, params, labels=('Children', 'Fathers')):
     """Print and return P(group | height). labels[0] is the component with the smaller mean."""
     post = e_step(height, params)[0]
     order = np.argsort(params['mu'])
