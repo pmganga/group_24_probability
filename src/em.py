@@ -35,3 +35,29 @@ def m_step(data, resp):
     mu = (resp * data[:, None]).sum(axis=0) / n_k
     var = (resp * (data[:, None] - mu) ** 2).sum(axis=0) / n_k
     return {'mu': mu, 'var': var, 'pi': n_k / len(data)}
+
+
+def log_likelihood(data, params):
+    """Sum over points of log(pi_1 * N_1 + pi_2 * N_2)."""
+    return np.sum(np.log(weighted_densities(data, params).sum(axis=1)))
+
+
+def snapshot(params):
+    """Flatten params into one row for the tracking table."""
+    return {'mu1': params['mu'][0], 'mu2': params['mu'][1],
+            'var1': params['var'][0], 'var2': params['var'][1],
+            'pi1': params['pi'][0], 'pi2': params['pi'][1]}
+
+
+def fit_em(data, tol=1e-6, max_iter=200):
+    """Run EM until the log-likelihood stops improving. Returns (params, history)."""
+    params = initialise(data)
+    history = [{'iteration': 0, **snapshot(params),
+                'log_likelihood': log_likelihood(data, params)}]
+    for i in range(1, max_iter + 1):
+        params = m_step(data, e_step(data, params))
+        ll = log_likelihood(data, params)
+        history.append({'iteration': i, **snapshot(params), 'log_likelihood': ll})
+        if abs(ll - history[-2]['log_likelihood']) < tol:
+            break
+    return params, history
