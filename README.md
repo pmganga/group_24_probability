@@ -12,6 +12,16 @@ Mathematics for Machine Learning
  
 ---
  
+## Project links
+
+| What | Link |
+|---|---|
+| Notebook (Google Colab) | [Open the notebook in Colab](https://colab.research.google.com/drive/1-e_MzHVl_e3LmuHOe1zGwFofLqYXSV6Z?usp=sharing) |
+| Team task sheet (live) | [Open the task sheet](https://docs.google.com/spreadsheets/d/12UGM8M3DCWtZxfs28Zg4xkIGg_Qt2Brxz2Dv-NWcc40/edit?usp=sharing) |
+| Notebook (in this repo) | [notebooks/Group24_Formative3_Notebook.ipynb](notebooks/Group24_Formative3_Notebook.ipynb) |
+| Task sheet (PDF copy) | [docs/Task_Sheet_Formative3_Team24.pdf](docs/Task_Sheet_Formative3_Team24.pdf) |
+| Handwritten Part 3 | [Manual_Gradient_Descent.pdf](Manual_Gradient_Descent.pdf) |
+
 ## Project Overview
  
 This repository contains our submission for Formative Assignment 3, covering probability distributions, Bayesian probability, and gradient descent. The work is organized into four parts:
