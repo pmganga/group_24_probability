@@ -204,7 +204,7 @@ The three iterations run as a relay, and each person starts from the previous pe
 
 **Trend.** The cost falls at every step (61.0, 6.845, 2.724, 2.390), so m and b are moving in the direction that reduces the error. The steps also get smaller as the cost falls, which is what we expect when the gradient shrinks.
 
-The full handwritten pages are in `Manual_Gradient_Descent.pdf`.
+The table above comes from our code. Our handwritten pages in `Manual_Gradient_Descent.pdf` were done earlier with a learning rate of 0.1. They show the same steps, but the error grows from 61 to 8,089.7 after the first update, which is how we found that 0.1 is too large.
 
 ---
 
