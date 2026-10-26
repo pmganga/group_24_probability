@@ -1,17 +1,15 @@
 # Probability Distributions, Bayesian Probability, and Gradient Descent
- 
+
+**Formative 3 | Mathematics for Machine Learning | BSE, African Leadership University | Group 24**
+
 ## Group 24 Members
- 
+
 - Philip Mganga
 - Methode Duhujubumwe
 - Nathanaella Hirwa
 
-African Leadership University
-BSE - Machine Learning
-Mathematics for Machine Learning
- 
 ---
- 
+
 ## Project links
 
 | What | Link |
@@ -19,222 +17,217 @@ Mathematics for Machine Learning
 | Notebook (Google Colab) | [Open the notebook in Colab](https://colab.research.google.com/drive/1-e_MzHVl_e3LmuHOe1zGwFofLqYXSV6Z?usp=sharing) |
 | Team task sheet (live) | [Open the task sheet](https://docs.google.com/spreadsheets/d/12UGM8M3DCWtZxfs28Zg4xkIGg_Qt2Brxz2Dv-NWcc40/edit?usp=sharing) |
 | Notebook (in this repo) | [notebooks/Group24_Formative3_Notebook.ipynb](notebooks/Group24_Formative3_Notebook.ipynb) |
+| EM code (in this repo) | [src/em.py](src/em.py) |
 | Task sheet (PDF copy) | [docs/Task_Sheet_Formative3_Team24.pdf](docs/Task_Sheet_Formative3_Team24.pdf) |
 | Handwritten Part 3 | [Manual_Gradient_Descent.pdf](Manual_Gradient_Descent.pdf) |
 
-## Project Overview
- 
-This repository contains our submission for Formative Assignment 3, covering probability distributions, Bayesian probability, and gradient descent. The work is organized into four parts:
- 
-1. Expectation-Maximization (EM) Algorithm
-2. Bayesian Probability
-3. Manual Gradient Descent
-4. Gradient Descent Implementation in Python
-Each part builds a different piece of statistical reasoning from first principles, using only NumPy, pandas, and SciPy, with no prebuilt machine learning libraries for the core algorithms.
- 
 ---
- 
-## Project Structure
- 
-```
-Project/
-|
-├── README.md
-|
-├── Codes/
-│   └── Formative_3_Probability_Distributions_Bayesian_Probability_and_Gradient_Descent_Implementation.ipynb
-|
-├── Manual_Gradient_Descent.pdf
-|
-├── data/
-│   ├── GaltonFamilies.csv
-│   └── IMDB Dataset.csv
-├── BSE Group Assignments _ Task Sheet_[Mathematics for ML_Formative 3_Cohort 2_Team24] - 1.pdf
-```
- 
-Parts 1, 2, and 4 are implemented in a single notebook to keep the statistical narrative and the code that produces it side by side, since each part builds on the same modeling habits (defining a small set of reusable functions, then calling them repeatedly). Part 3 is submitted as a separate handwritten PDF, as required.
- 
----
- 
-## Part 1: Expectation-Maximization (EM) Algorithm
- 
-### Objective
- 
-Implement the Expectation-Maximization algorithm from scratch to recover two hidden Gaussian populations from a single pooled, unlabeled set of heights.
- 
-### Dataset
- 
-Galton Families dataset (father and child heights). We compared father heights against child heights, treating the two as an unlabeled mixture of two Gaussian distributions.
- 
-### Approach
- 
-- Removed duplicate father entries per family, then pooled father heights and child heights into a single unlabeled array of 1,139 values.
-- Initialized the two cluster means using the 25th and 75th percentiles of the pooled data, with equal starting variance and equal mixing weights.
-- Implemented the E-step, computing each point's responsibility toward each cluster from the Gaussian density and the current mixing weight.
-- Implemented the M-step, updating each cluster's mean, variance, and mixing weight as a responsibility-weighted average.
-- Tracked the log-likelihood at every iteration and stopped once its change fell below a fixed tolerance.
-### Results
- 
-The algorithm converged after 25 iterations. The tracking table below shows the initialization step and the first two updates.
- 
-| Iteration | mu1 (Children) | mu2 (Parents) | sigma1^2 | sigma2^2 | pi1 | pi2 | Log-Likelihood |
-|---|---|---|---|---|---|---|---|
-| 0 | 64.5000 | 70.0000 | 12.7241 | 12.7241 | 0.5000 | 0.5000 | -3119.82 |
-| 1 | 65.2205 | 69.2054 | 9.0603 | 8.4468 | 0.5011 | 0.4989 | -3057.91 |
-| 2 | 65.1609 | 69.2600 | 8.9420 | 8.1040 | 0.5005 | 0.4995 | -3056.97 |
- 
-At convergence, EM recovered a child mean of 64.50 and a parent mean of 69.79, compared to the true group means of 66.75 and 69.32. The recovered values are close to, though not identical to, the true group means, which is expected given the real overlap between the two populations.
- 
-### Classification Demonstration
- 
-Given a new height, the model reports the exact posterior probability of it belonging to each population. For a test height of 73 inches, the model returned:
- 
-- P(Child) = 0.0053
-- P(Parent) = 0.9947
-### Should We Simply Split at the Global Mean?
- 
-We tested this directly. Splitting the pooled data at its global mean produced 60.8 percent accuracy against the true labels, compared to 60.5 percent for EM's hard assignment. The two methods land close together on this particular dataset, but this is a property of this dataset being reasonably balanced, not evidence that the mean split is a sound method in general. The mean split assumes equal group sizes and equal spread, neither of which holds here, since children outnumber fathers by more than four to one and the two groups have different variances. It also forces a hard decision even for heights that sit in the ambiguous overlap zone, where EM instead reports a genuine, close-to-even probability. EM is the principled choice because it directly maximizes the likelihood of the observed data and accounts for unequal group sizes and unequal spread, rather than relying on a single arbitrary cutoff.
- 
----
- 
-## Part 2: Bayesian Probability
- 
-### Objective
- 
-Apply Bayes' Theorem to estimate the probability that a movie review is positive, given the presence of a specific keyword.
- 
-### Dataset
- 
-IMDb Movie Reviews dataset, 50,000 reviews, loaded and used without any external machine learning libraries.
- 
-### Selected Keywords
- 
-Positive keywords:
-- excellent
-- amazing
-- wonderful
-- masterpiece
-Negative keywords:
-- worst
-- terrible
-- awful
-- boring
-These were chosen for being strong, unambiguous sentiment markers that are unlikely to appear in neutral or sarcastic contexts, which keeps the keyword-level probability estimates meaningful.
- 
-### Conditional Probability Direction
- 
-We computed P(Positive | keyword) exclusively, as instructed, rather than computing both directions.
- 
-### Computation
- 
-For each keyword we computed all four required quantities directly from the data using basic Python and pandas operations:
- 
-- Prior: P(Positive)
-- Likelihood: P(keyword | Positive)
-- Marginal: P(keyword)
-- Posterior: P(Positive | keyword), via Bayes' Theorem
-### Results
- 
-Prior probability across the dataset: P(Positive) = 0.5000
- 
-| Keyword | Type | Likelihood P(keyword\|Positive) | Marginal P(keyword) | Posterior P(Positive\|keyword) |
-|---|---|---|---|---|
-| excellent | Positive | 0.1147 | 0.0710 | 0.8074 |
-| amazing | Positive | 0.0672 | 0.0432 | 0.7780 |
-| wonderful | Positive | 0.0903 | 0.0556 | 0.8122 |
-| masterpiece | Positive | 0.0351 | 0.0241 | 0.7274 |
-| worst | Negative | 0.0164 | 0.0887 | 0.0927 |
-| terrible | Negative | 0.0153 | 0.0540 | 0.1418 |
-| awful | Negative | 0.0114 | 0.0577 | 0.0985 |
-| boring | Negative | 0.0236 | 0.0610 | 0.1937 |
- 
-The posterior probabilities line up with expectation: reviews containing our chosen positive keywords are far more likely to be positive (roughly 73 to 81 percent), while reviews containing our chosen negative keywords are correspondingly unlikely to be positive (roughly 9 to 19 percent).
- 
----
- 
-## Part 3: Manual Gradient Descent
- 
-### Objective
- 
-Manually compute gradient descent updates for a linear regression model with two input features, using matrix multiplication rather than treating parameters as scalars.
- 
-### Contents
- 
-The full handwritten derivation, including the chain rule applied to both partial derivatives and the intermediate results after each update, is submitted separately as a PDF in this repository, as required. Each group member completed at least one iteration by hand.
- 
----
- 
-## Part 4: Gradient Descent in Python
- 
-### Objective
- 
-Convert the manual gradient descent process into working Python code, using SciPy to compute derivatives numerically rather than deriving them by hand in code.
- 
-### Approach
- 
-- Defined the linear model as a matrix operation, y_pred = X @ m + b.
-- Defined the Mean Squared Error cost function.
-- Used SciPy's approx_fprime to compute the gradient of the cost function with respect to m and b at each iteration.
-- Updated the parameters using the gradient and a fixed learning rate, printing every intermediate value (predictions, errors, MSE, and gradient) at each step so no calculation is hidden.
-### Results and Trend Observed
 
-Across the four manual iterations, the MSE did not decrease — it grew substantially,
-With a learning rate of 0.1, the parameter updates grew rapidly rather than settling toward a minimum. The mean squared error rose from 61.0 at initialization to over 21 billion by the fourth iteration. This is a direct consequence of the chosen learning rate being too large for the scale of this data: each update overshoots the minimum by a wider margin than the previous one, so the error compounds instead of shrinking. This illustrates why the learning rate is one of the most sensitive hyperparameters in gradient descent, and why a smaller learning rate, or a normalization step on the input features, would be needed for this particular problem to converge. (In the background, we have found that the learning rate of 0.01 would be better to minimize the error)
- 
-Two plots are included in the notebook: one tracking m1, m2, and b across iterations, and one tracking the mean squared error across the same iterations. Both visibly show the divergence described above.
- 
----
- 
-## Technologies Used
- 
-- Python
-- NumPy
-- pandas
-- SciPy
-- Matplotlib
-- Google Colab
-- GitHub
----
- 
-## Code Design
- 
-All four parts are built from small, single-purpose functions that are reused rather than rewritten, in line with the DRY principle:
- 
-- gaussian_pdf, e_step, m_step, and log_likelihood are each defined once and called repeatedly across every EM iteration.
-- predict, mse_equation, and compute_gradient_with_scipy are each defined once and reused across every gradient descent iteration.
-This keeps each notebook cell focused on a single step of the algorithm, and makes the underlying formulas easy to check against the mathematical derivations they represent.
- 
----
- 
-## How to Run the Project
- 
-1. Clone the repository.
+## 1. What this project does
+
+We worked on four connected problems. Each one uses a different way to reason with data.
+
+| Part | Topic | Main idea |
+|---|---|---|
+| 1 | Expectation-Maximization (EM) | Split one unlabeled pile of heights into two hidden groups |
+| 2 | Bayesian probability | Turn a keyword into the chance that a movie review is positive |
+| 3 | Manual gradient descent | Do three updates by hand, using matrices |
+| 4 | Gradient descent in code | Repeat the same updates in Python with SciPy and plot them |
+
+Parts 1, 3 and 4 use NumPy, SciPy and Matplotlib. Part 2 uses only basic Python (`csv`, `re`, `collections`), as the assignment requires.
+
+## 2. Repository map
+
 ```
-git clone https://github.com/yohan2330/ALU-Formative3
+group_24_probability/
+├── README.md
+├── requirements.txt
+├── data/
+│   ├── galton_families.csv      heights of parents and children
+│   └── imdb_dataset.csv         50,000 labeled movie reviews
+├── src/
+│   └── em.py                    EM functions (Part 1)
+├── notebooks/
+│   └── Group24_Formative3_Notebook.ipynb   all four parts
+├── images/                      plots used in the notebook
+├── docs/
+│   └── Task_Sheet_Formative3_Team24.pdf
+└── Manual_Gradient_Descent.pdf  handwritten Part 3, one combined file
 ```
- 
-2. Install the required libraries.
-```
-pip install numpy pandas scipy matplotlib
-```
- 
-3. Place GaltonFamilies.csv and IMDB Dataset.csv in the data folder, or update the file paths in the notebook to match their location. ( you would want to change some part of the notebook where dataset is loaded to match the correct path of the dataset
-4. Open the notebook in Jupyter or Google Colab.
-5. Run all cells in order, from top to bottom.
+
+## 3. How to run it
+
+1. Clone the repository: `git clone https://github.com/pmganga/group_24_probability.git`
+2. Install the libraries: `pip install -r requirements.txt`
+3. Open `notebooks/Group24_Formative3_Notebook.ipynb` in Jupyter or Colab and use Run All.
+
+The notebook finds the data in the `data` folder. If it is missing (for example in a new Colab session), it downloads the two CSV files from this repo by itself.
+
 ---
- 
-## Group Contributions
- 
-| Member | Contribution |
-|---|---|
-| Philip Mganga | EM Algorithm Implementation, Live Classification Demo, Manual GD Iteration 1 |
-| Methode Duhujubumwe | Bayesian Probability, Data Cleaning & Preprocessing, Manual GD Iteration 2 |
-| Nathanaella Hirwa | SciPy Gradient Descent Code, Matplotlib Visualizations, Manual GD Iteration 3 |
- 
-A detailed breakdown of individual contributions is included in the separate contributions PDF submitted alongside this repository. All members contributed to the implementation and are prepared to present and answer questions on every part of the project.
- 
+
+## 4. Part 1: Expectation-Maximization (Philip)
+
+### Data
+
+We use the Galton families file and compare **fathers** with **children**. We keep one father per family (205 values) and all children (934 values), then pool them into one list of 1,139 heights and remove the labels. The model never sees who is a father and who is a child. The labels are kept only to check the result afterwards.
+
+![Overlapping groups](images/height_overlap.png)
+
+The two groups overlap a lot, so the pooled data forms one bumpy hill.
+
+### How the algorithm works
+
+- **Start (iteration 0):** the two means start at the 25th and 75th percentile of the data (64.5 and 70.0). Both variances start equal to the variance of all the data, and both weights start at 0.5.
+- **E-step:** for every height, work out how responsible each group is for it. This uses the Gaussian density times the group's weight, divided so the two shares add up to 1. This is a soft assignment.
+- **M-step:** update each group's mean, variance and weight, using those shares as weights.
+- **Stop:** repeat until the log-likelihood changes by less than 0.000001. Our run stopped after **319 iterations**, with a log-likelihood of about -3046.99.
+
+### Tracking table (from our code in `src/em.py`)
+
+| Iteration | mu1 (Children) | mu2 (Fathers) | sigma1^2 | sigma2^2 | pi1 | pi2 | Log-likelihood |
+|---|---|---|---|---|---|---|---|
+| 0 (start) | 64.5000 | 70.0000 | 12.7241 | 12.7241 | 0.5000 | 0.5000 | -3119.8222 |
+| 1 | 65.2205 | 69.2054 | 9.0603 | 8.4468 | 0.5011 | 0.4989 | -3057.9135 |
+| 2 | 65.1609 | 69.2600 | 8.9420 | 8.1040 | 0.5005 | 0.4995 | -3056.9719 |
+
+After 319 iterations EM settles at means of **64.18** (children) and **69.52** (fathers), variances of 5.30 and 6.04, and weights of 0.432 and 0.568. The real group means are 66.75 and 69.32.
+
+![Fitted mixture](images/fitted_mixture.png)
+
+### Classifying a height
+
+For any height, the model gives the exact probability of each group. Examples from our code:
+
+| Height (in) | P(Child) | P(Father) |
+|---|---|---|
+| 60 | 0.9965 | 0.0035 |
+| 64 | 0.9098 | 0.0902 |
+| 66 | 0.6236 | 0.3764 |
+| 67.21 (global mean) | 0.3469 | 0.6531 |
+| 69.5 | 0.0532 | 0.9468 |
+| 72 | 0.0042 | 0.9958 |
+
+In the presentation, the coach gives us a height and we run `classify(height, params)` live.
+
+### Should we split at the global mean?
+
+No. The global mean of all heights is 67.21 inches. A line there makes 575 heights one pile and 564 the other.
+
+- **It makes many wrong calls.** The line puts 403 children above the mean and 44 fathers below it, so each pile's average comes from the wrong people.
+- **It gives no sign of doubt.** A person of 66.75 inches gets a fixed label, but EM says 45% child and 55% father. In the zone between 65.2 and 67.8 inches (230 heights), EM gives between 20% and 80% to each group.
+- **It assumes the groups have the same size and spread.** Ours do not: there are about 4.6 times more children than fathers, and the spreads differ.
+- **It does not improve itself.** EM keeps improving the fit until the log-likelihood stops changing.
+
+One honest note: when we count correct labels, the mean split scores 60.8% and EM's hard assignment 56.5%. EM is not trying to maximize that score. It fits two bell curves to the data and gives soft probabilities, and the two groups here overlap so much that any method will make many mistakes.
+
 ---
- 
-## Conclusion
- 
-This project applies three related ideas in statistical machine learning to real data. The EM algorithm recovered two overlapping Gaussian populations from a single unlabeled set of heights, and we used our own results to argue, with evidence, against the simpler approach of splitting at the global mean. Bayes' Theorem gave us a principled way to estimate sentiment from individual keywords in real movie reviews. Gradient descent, implemented first by hand and then in code, showed both how parameter updates are computed from the cost function's gradient and what happens when a learning rate is chosen too aggressively for the data at hand.
+
+## 5. Part 2: Bayesian probability on IMDb reviews (Methode)
+
+**Question.** If a review contains a certain word, how likely is it to be positive?
+
+**Bayes' Theorem:** P(Positive | word) = P(word | Positive) x P(Positive) / P(word)
+
+We compute **P(Positive | word) only**. We do not compute P(Negative | word).
+
+### 5.1 Data cleaning
+
+1. **Duplicates.** The file has 418 repeated reviews. We keep one copy of each text, which leaves **49,582** distinct reviews (24,884 positive and 24,698 negative). No text had two different labels.
+2. **HTML tags.** 29,210 reviews contain tags such as `<br />`. We remove every tag, because left in they create a fake word `br`.
+3. **Normal text.** We lower-case everything and keep only letters and apostrophes.
+4. **Whole words only.** Each review becomes a set of words, so "bad" does not match "badge" and a word is counted once per review.
+
+### 5.2 How we chose the keywords
+
+We tested 19 candidate words on the data. We looked for a strong signal (the posterior far from the prior) and a large count (so the estimate is stable). We rejected "great" and "bad": they appear in many reviews of both types ("not bad", "not great").
+
+| Type | Keyword | Reason |
+|---|---|---|
+| Positive | superb | Very strong signal, rarely used as a joke |
+| Positive | excellent | Common and clearly positive |
+| Positive | wonderful | Common and clearly positive |
+| Positive | fantastic | Strong signal, different wording |
+| Negative | waste | "Waste of time" is almost always negative |
+| Negative | worst | Superlative of a negative idea |
+| Negative | awful | Strong negative word |
+| Negative | boring | A very common complaint |
+
+### 5.3 The four probabilities
+
+- **Prior** P(Positive) = positive reviews / all reviews = 24,884 / 49,582 = 0.5019
+- **Likelihood** P(word | Positive) = positive reviews with the word / positive reviews
+- **Marginal** P(word) = P(word | Positive) x P(Positive) + P(word | Negative) x P(Negative), the law of total probability. We also counted it directly, and both ways agree for every keyword.
+- **Posterior** P(Positive | word) = likelihood x prior / marginal
+
+**Zero counts.** If a word never appears, the marginal is 0 and the division would fail. The code falls back to the prior, and a smoothed version (add 1 to each count) is available.
+
+### 5.4 Results
+
+| Keyword | Type | Prior | Likelihood | Marginal | Posterior |
+|---|---|---|---|---|---|
+| superb | Positive | 0.5019 | 0.0412 | 0.0241 | 0.8569 |
+| excellent | Positive | 0.5019 | 0.1146 | 0.0712 | 0.8082 |
+| wonderful | Positive | 0.5019 | 0.0903 | 0.0557 | 0.8138 |
+| fantastic | Positive | 0.5019 | 0.0433 | 0.0271 | 0.8013 |
+| waste | Negative | 0.5019 | 0.0070 | 0.0504 | 0.0692 |
+| worst | Negative | 0.5019 | 0.0163 | 0.0884 | 0.0927 |
+| awful | Negative | 0.5019 | 0.0113 | 0.0575 | 0.0986 |
+| boring | Negative | 0.5019 | 0.0236 | 0.0611 | 0.1941 |
+
+![Posterior against prior](images/posterior_vs_prior.png)
+
+### 5.5 What the numbers tell us
+
+- Each positive word lifts the chance of a positive review from about 50% to about 80 to 86%. Each negative word drops it to about 7 to 19%.
+- The negative words are stronger evidence than the positive ones. People tend to use harsher and more specific words when they complain.
+- No word reaches 0% or 100%. Reviews contain negations ("not boring") and quotes, so one word is evidence and not proof.
+- Limit: we look at one word at a time and ignore word order. This is Bayes' Theorem on a keyword, not a full classifier.
+
+---
+
+## 6. Part 3: Manual gradient descent (all three members)
+
+The model is y = X m + b, with X = [[1, 3], [4, 10]], y = [5, 6], and start m = [-1, 2], b = 1. Everything is done with matrices. The cost is J = (1/n) x sum of (prediction - y)^2 with n = 2, and we use the chain rule for each derivative:
+
+- dJ/dm = (2/n) X^T (y_hat - y)
+- dJ/db = (2/n) sum of (y_hat - y)
+
+Learning rate: **0.01**. We also tried 0.1, but the error exploded, so it is too large for this data.
+
+The three iterations run as a relay, and each person starts from the previous person's result.
+
+| Iteration | Done by | Starts from | Ends at | Cost J before / after |
+|---|---|---|---|---|
+| 1 | Philip | m = [-1, 2], b = 1 | m = [-1.45, 0.87], b = 0.88 | 61.0000 to 6.8450 |
+| 2 | Methode | m = [-1.45, 0.87], b = 0.88 | m = [-1.3316, 1.1808], b = 0.9318 | 6.8450 to 2.7238 |
+| 3 | Nathanaella | m = [-1.3316, 1.1808], b = 0.9318 | m = [-1.3696, 1.0952], b = 0.9362 | 2.7238 to 2.3904 |
+
+**Trend.** The cost falls at every step (61.0, 6.845, 2.724, 2.390), so m and b are moving in the direction that reduces the error. The steps also get smaller as the cost falls, which is what we expect when the gradient shrinks.
+
+The full handwritten pages are in `Manual_Gradient_Descent.pdf`.
+
+---
+
+## 7. Part 4: Gradient descent in code (Nathanaella)
+
+<!-- Nathanaella: write this section from your own notebook results. Cover: the predict, MSE, gradient and update functions, the SciPy derivative function, the loop that prints every step, the final m and b with predictions, and the two plots (m and b over iterations, error over iterations). Use the real numbers from your run. -->
+
+---
+
+## 8. Code design
+
+Each step is a small function defined once and reused:
+
+- **Part 1 (`src/em.py`):** `load_heights`, `gaussian_pdf`, `initialise`, `e_step`, `m_step`, `log_likelihood`, `fit_em`, `tracking_table`, `classify`.
+- **Part 2 (notebook):** `load_reviews`, `drop_duplicates`, `clean_review`, `tokenize`, `count_word`, `bayes_for_word`.
+- **Part 4 (notebook):** see section 7.
+
+## 9. Who did what
+
+| Member | Main part | Also |
+|---|---|---|
+| Philip Mganga | Part 1 (EM algorithm, live classification) | Repo setup, manual iteration 1 |
+| Methode Duhujubumwe | Part 2 (Bayes, data cleaning) | Height plots, manual iteration 2, notebook assembly |
+| Nathanaella Hirwa | Part 4 (gradient descent code, plots) | Manual iteration 3, contributions PDF |
+
+A detailed breakdown is in the contributions PDF submitted with this repository. Git logs show each person's commits. Every member should be able to explain every part.
