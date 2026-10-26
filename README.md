@@ -210,7 +210,37 @@ The full handwritten pages are in `Manual_Gradient_Descent.pdf`.
 
 ## 7. Part 4: Gradient descent in code (Nathanaella)
 
-<!-- Nathanaella: write this section from your own notebook results. Cover: the predict, MSE, gradient and update functions, the SciPy derivative function, the loop that prints every step, the final m and b with predictions, and the two plots (m and b over iterations, error over iterations). Use the real numbers from your run. -->
+We turned the hand calculations from Part 3 into Python. Each step is a small function that is defined once and reused.
+
+- `predict(X, m, b)` gives y_hat = X m + b with matrix multiplication.
+- `mse(y_hat, y)` gives the cost J = (1/n) x sum of (y_hat - y)^2.
+- `cost(theta, X, y)` is the equation we differentiate, with theta = [m1, m2, b].
+- `scipy_derivative(equation, point, *args)` uses SciPy's `approx_fprime` to compute the derivative of any equation.
+- `chain_rule_gradient(...)` is our Part 3 derivation in code. We use it only to check SciPy. At the start the two gradients agree to within 0.000001: [45, 113, 12].
+- `update(theta, gradient, learning_rate)` does one step: theta_new = theta - learning_rate x gradient.
+- `gradient_descent(...)` runs the loop and prints every step: predictions, errors, cost, gradient and the new m and b.
+
+### Three updates (learning rate 0.01)
+
+| Iteration | Cost J before | m after | b after |
+|---|---|---|---|
+| 1 | 61.0000 | [-1.4500, 0.8700] | 0.8800 |
+| 2 | 6.8450 | [-1.3316, 1.1808] | 0.9318 |
+| 3 | 2.7238 | [-1.3696, 1.0952] | 0.9362 |
+
+These match the three handwritten iterations in Part 3.
+
+### Learning rate
+
+With a learning rate of 0.1, the cost after three updates is 154 million, so each step overshoots and the error explodes. With 0.01 the cost falls at every step: 61.0, 6.845, 2.724, 2.390. The gradient gives the direction, and the learning rate decides how far we move along it.
+
+### Final values
+
+After 300 iterations at 0.01, m = [-2.0228, 1.1007] and b = 3.2308. The predictions are [4.5102, 6.1471] against the targets [5, 6], and the cost is 0.1308. The cost keeps falling, so m and b move in the direction that reduces the error. The curves flatten as the gradient gets smaller.
+
+![m and b over iterations](images/gd_parameters.png)
+
+![Error over iterations](images/gd_error.png)
 
 ---
 
